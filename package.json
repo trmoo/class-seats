@@ -1,0 +1,20 @@
+{
+  "name": "class-seats",
+  "version": "1.0.0",
+  "description": "랜덤 자리 뽑기 — 교실 자리 배치 도구 겸 무작위 실험실",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node test/run.mjs",
+    "check:syntax": "node tools/check-syntax.mjs"
+  },
+  "devDependencies": {
+    "vite": "^8.2.2",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

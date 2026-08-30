@@ -1,0 +1,463 @@
+/*! 랜덤 자리 뽑기 — 원작 © 2026 민준서 · 개작 © 2026 티쳐무 · 모든 권리 보유 */
+
+/* ── 색과 크기 ───────────────────────────────────────────────
+   교실 TV·전자칠판에 띄우는 화면이라 어두운 바닥을 골랐다.
+   밝은 배경은 불 끈 교실에서 눈이 부시고 자리 카드가 묻힌다.          */
+:root {
+  --바닥: #0a0e18;
+  --패널: #141b2b;
+  --패널밝: #1d2739;
+  --테두리: #2b3850;
+  --글: #eaf0fb;
+  --흐림: #8fa0bd;
+  --강조: #38bdf8;
+  --강조진: #0ea5e9;
+  --라임: #a3e635;
+  --노랑: #fbbf24;
+  --빨강: #f87171;
+  --앞구역: #38bdf8;
+  --중구역: #a3e635;
+  --뒤구역: #fbbf24;
+  --둥금: 14px;
+  --사이드폭: 250px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--바닥);
+  color: var(--글);
+  font-family: "Pretendard", "Malgun Gothic", system-ui, sans-serif;
+  /* 교실 뒷자리에서도 보이도록 기본 글자를 크게 잡는다 */
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* 은은한 무대 조명 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 70% at 60% -10%, rgba(56, 189, 248, 0.14), transparent 60%);
+  z-index: 0;
+}
+
+#앱 {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: var(--사이드폭) 1fr;
+  min-height: 100vh;
+}
+
+/* ── 왼쪽 세로 사이드바 ─────────────────────────────────────── */
+#사이드바 {
+  background: linear-gradient(180deg, var(--패널) 0%, #0e1524 100%);
+  border-right: 1px solid var(--테두리);
+  padding: 22px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  padding: 6px 10px 16px;
+  color: #fff;
+}
+.brand small {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--흐림);
+  letter-spacing: 0;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid transparent;
+  border-radius: var(--둥금);
+  background: transparent;
+  color: var(--흐림);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.nav-btn .ico { font-size: 22px; line-height: 1; }
+.nav-btn:hover { background: var(--패널밝); color: var(--글); }
+.nav-btn[aria-current="true"] {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(163, 230, 53, 0.12));
+  border-color: var(--강조);
+  color: #fff;
+}
+
+.side-foot {
+  margin-top: auto;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #64748b;
+  padding: 12px 10px 0;
+  border-top: 1px solid var(--테두리);
+}
+
+/* ── 본문 ───────────────────────────────────────────────────── */
+#본문 { padding: 26px 30px 60px; min-width: 0; }
+
+h2.화면제목 {
+  margin: 0 0 4px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+}
+p.화면설명 { margin: 0 0 22px; color: var(--흐림); font-size: 16px; }
+
+.패널 {
+  background: var(--패널);
+  border: 1px solid var(--테두리);
+  border-radius: var(--둥금);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.패널 > h3 {
+  margin: 0 0 14px;
+  font-size: 19px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.줄 { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.칸 { display: flex; flex-direction: column; gap: 6px; }
+.라벨 { font-size: 15px; color: var(--흐림); font-weight: 600; }
+
+/* ── 조작 요소 ──────────────────────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 220px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--패널밝);
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--강조);
+  border: 3px solid #0a0e18;
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--강조);
+  border: 3px solid #0a0e18;
+  cursor: pointer;
+}
+input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
+
+input[type="text"] {
+  background: var(--패널밝);
+  border: 1px solid var(--테두리);
+  border-radius: 10px;
+  color: var(--글);
+  font: inherit;
+  padding: 11px 14px;
+  min-width: 230px;
+}
+input[type="text"]:focus { outline: 2px solid var(--강조); border-color: transparent; }
+input:disabled { opacity: 0.45; }
+
+.btn {
+  font: inherit;
+  font-weight: 700;
+  font-size: 17px;
+  padding: 13px 22px;
+  border-radius: 12px;
+  border: 1px solid var(--테두리);
+  background: var(--패널밝);
+  color: var(--글);
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.15s, background 0.15s;
+}
+.btn:hover:not(:disabled) { filter: brightness(1.25); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.primary {
+  background: linear-gradient(135deg, var(--강조), var(--강조진));
+  border-color: transparent;
+  color: #04131f;
+}
+.btn.lg { font-size: 22px; padding: 17px 40px; border-radius: 14px; }
+.btn.on {
+  background: linear-gradient(135deg, var(--라임), #65a30d);
+  border-color: transparent;
+  color: #10200a;
+}
+.btn.sm { font-size: 15px; padding: 9px 14px; }
+
+/* 켜고 끄는 스위치 */
+.스위치 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--테두리);
+  background: var(--패널밝);
+  font-weight: 600;
+}
+.스위치 input { width: 20px; height: 20px; accent-color: var(--라임); cursor: pointer; }
+.스위치.켜짐 { border-color: var(--라임); background: rgba(163, 230, 53, 0.12); }
+
+/* ── 교실 무대 ──────────────────────────────────────────────── */
+.무대 {
+  background: linear-gradient(180deg, #101828 0%, #0a101c 100%);
+  border: 1px solid var(--테두리);
+  border-radius: 18px;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.교탁 {
+  margin: 0 auto 22px;
+  max-width: 620px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 6px;
+  color: #06202e;
+  background: linear-gradient(180deg, #e2e8f0, #94a3b8);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 0 40px rgba(56, 189, 248, 0.3);
+}
+
+.격자 { display: grid; gap: 10px; justify-content: center; }
+
+/* 자리 한 칸 */
+.자리 {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  min-width: 62px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #f1f5f9, #cbd5e1);
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: clamp(20px, 3.4vw, 46px);
+  box-shadow: 0 4px 0 #64748b, 0 8px 18px rgba(0, 0, 0, 0.45);
+  border: none;
+  font-family: inherit;
+  padding: 0;
+}
+.자리.빈칸 {
+  background: repeating-linear-gradient(45deg, #1a2334, #1a2334 8px, #141b2b 8px, #141b2b 16px);
+  color: #475569;
+  box-shadow: none;
+  font-size: 20px;
+}
+.자리.고를수있음 { cursor: pointer; outline: 2px dashed var(--노랑); outline-offset: -5px; }
+.자리.고를수있음:hover { filter: brightness(1.1); }
+.자리.겹침 { outline: 3px solid var(--빨강); outline-offset: -3px; }
+
+/* 뽑기 연출 — 카드가 하나씩 뒤집혀 나타난다 */
+@keyframes 뒤집기 {
+  from { transform: rotateX(-92deg) translateY(-8px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.자리.등장 { animation: 뒤집기 0.42s cubic-bezier(0.22, 1.2, 0.4, 1) both; }
+
+/* 행·열 번호와 구역 색 */
+.머리칸 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--흐림);
+}
+.머리칸.앞 { color: var(--앞구역); }
+.머리칸.중 { color: var(--중구역); }
+.머리칸.뒤 { color: var(--뒤구역); }
+
+.구역범례 {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--흐림);
+}
+
+/* ── 통계·표 ────────────────────────────────────────────────── */
+.수치판 { display: flex; flex-wrap: wrap; gap: 12px; }
+.수치 {
+  flex: 1 1 150px;
+  background: var(--패널밝);
+  border: 1px solid var(--테두리);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.수치 .값 { font-size: 30px; font-weight: 800; line-height: 1.2; }
+.수치 .이름 { font-size: 14px; color: var(--흐림); }
+.수치.좋음 .값 { color: var(--라임); }
+.수치.나쁨 .값 { color: var(--빨강); }
+.수치.보통 .값 { color: var(--강조); }
+
+table.표 { width: 100%; border-collapse: collapse; font-size: 16px; }
+table.표 th,
+table.표 td { padding: 10px 12px; border-bottom: 1px solid var(--테두리); text-align: right; }
+table.표 th:first-child,
+table.표 td:first-child { text-align: left; }
+table.표 th { color: var(--흐림); font-weight: 600; font-size: 14px; }
+
+.안내 {
+  border-left: 4px solid var(--노랑);
+  background: rgba(251, 191, 36, 0.09);
+  padding: 14px 16px;
+  border-radius: 0 10px 10px 0;
+  font-size: 16px;
+  margin: 14px 0;
+}
+.안내.파랑 { border-color: var(--강조); background: rgba(56, 189, 248, 0.09); }
+.안내.빨강 { border-color: var(--빨강); background: rgba(248, 113, 113, 0.09); }
+.안내 b { color: #fff; }
+
+/* 히트맵 */
+.히트맵 { display: grid; gap: 5px; justify-content: center; margin: 10px 0; }
+.히트칸 {
+  aspect-ratio: 4 / 3;
+  min-width: 44px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #04131f;
+}
+
+/* 막대그래프 */
+.막대줄 { display: flex; align-items: center; gap: 10px; margin: 5px 0; font-size: 15px; }
+.막대줄 .이름 { width: 100px; color: var(--흐림); flex: none; }
+.막대 {
+  height: 20px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--강조), var(--라임));
+  min-width: 2px;
+}
+.막대줄 .수 { color: var(--흐림); font-size: 14px; }
+
+/* ── 알림창 ─────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(3, 7, 15, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal {
+  background: var(--패널);
+  border: 1px solid var(--테두리);
+  border-radius: 16px;
+  padding: 24px 26px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+.modal h3 { margin: 0 0 10px; font-size: 21px; }
+.modal p { margin: 0 0 20px; color: var(--흐림); white-space: pre-wrap; }
+.modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
+
+details.더 { margin: 12px 0; }
+details.더 > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--강조);
+  padding: 10px 0;
+  font-size: 16px;
+}
+details.더 > div { padding: 6px 0 6px 14px; border-left: 2px solid var(--테두리); }
+
+.푸터 {
+  margin-top: 34px;
+  padding-top: 16px;
+  border-top: 1px solid var(--테두리);
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+/* ── 좁은 화면 ──────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  html, body { font-size: 16px; }
+  #앱 { grid-template-columns: 1fr; }
+  #사이드바 {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    padding: 10px;
+    border-right: none;
+    border-bottom: 1px solid var(--테두리);
+  }
+  .brand { padding: 0 12px 0 6px; font-size: 17px; }
+  .brand small { display: none; }
+  .nav-btn { width: auto; white-space: nowrap; padding: 10px 14px; font-size: 15px; }
+  .side-foot { display: none; }
+  #본문 { padding: 18px 14px 50px; }
+  input[type="range"] { width: 150px; }
+}
+
+/* ── 인쇄 ───────────────────────────────────────────────────── */
+/* 자리표를 뽑아 교실에 붙이는 경우. 어두운 화면을 그대로 인쇄하면 잉크만 먹는다. */
+@media print {
+  body::before,
+  #사이드바,
+  .조작판,
+  .btn,
+  .안내,
+  .인쇄숨김 { display: none !important; }
+  html, body { background: #fff; color: #000; font-size: 12pt; }
+  #앱 { display: block; }
+  #본문 { padding: 0; }
+  .무대, .패널 { background: #fff; border: 1px solid #999; box-shadow: none; }
+  .자리 {
+    background: #fff;
+    color: #000;
+    border: 1.5px solid #333;
+    box-shadow: none;
+    animation: none;
+  }
+  .자리.빈칸 { background: #eee; }
+  .교탁 { background: #ddd; color: #000; box-shadow: none; }
+  h2.화면제목, .푸터 { color: #000; }
+}
