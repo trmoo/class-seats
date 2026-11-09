@@ -182,7 +182,8 @@ input[type="text"] {
   color: var(--글);
   font: inherit;
   padding: 11px 14px;
-  min-width: 230px;
+  width: 230px;
+  max-width: 100%; /* 좁은 화면에서 패널 밖으로 삐져나가지 않게 */
 }
 input[type="text"]:focus { outline: 2px solid var(--강조); border-color: transparent; }
 input:disabled { opacity: 0.45; }
@@ -232,13 +233,20 @@ input:disabled { opacity: 0.45; }
 .스위치.켜짐 { border-color: var(--라임); background: rgba(163, 230, 53, 0.12); }
 
 /* ── 교실 무대 ──────────────────────────────────────────────── */
+/* 무대는 가로 스크롤 상자다. 열이 많아 교실이 넓으면 옆으로 밀어서 본다.
+   ⚠ justify-content:center 로 가운데 맞추지 말 것 — 넘칠 때 양쪽으로 넘쳐서
+   왼쪽(행 번호·1열)이 잘리고 스크롤로도 닿지 못한다(2026-11-09 실제로 겪음).
+   대신 .교실 이 「무대 폭」과 「격자 최소 폭」 가운데 큰 쪽으로 넓어지고,
+   격자는 그 안에서 margin:auto 로 가운데 선다. 그러면 넘침은 오른쪽으로만 생긴다. */
 .무대 {
   background: linear-gradient(180deg, #101828 0%, #0a101c 100%);
   border: 1px solid var(--테두리);
   border-radius: 18px;
   padding: 20px;
   overflow-x: auto;
+  scrollbar-color: #475569 transparent;
 }
+.교실 { width: fit-content; min-width: 100%; }
 
 .교탁 {
   margin: 0 auto 22px;
@@ -254,9 +262,12 @@ input:disabled { opacity: 0.45; }
   box-shadow: 0 0 40px rgba(56, 189, 248, 0.3);
 }
 
-.격자 { display: grid; gap: 10px; justify-content: center; }
+.격자 { display: grid; gap: 10px; width: fit-content; margin-inline: auto; }
 
-/* 자리 한 칸 */
+/* 자리 한 칸
+   글자 크기를 화면 폭(vw)이 아니라 카드 폭에 맞춘다(container 단위 cqi).
+   vw 로 두면 카드는 작은데 글자만 커져서, 번호가 들어가는 순간 카드가 세로로 늘어났다.
+   ⚠ 줄 높이도 1 로 둔다 — 기본 1.6 이면 글줄이 4:3 카드보다 높아 카드가 늘어난다. */
 .자리 {
   position: relative;
   aspect-ratio: 4 / 3;
@@ -268,18 +279,22 @@ input:disabled { opacity: 0.45; }
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: clamp(20px, 3.4vw, 46px);
+  font-size: clamp(20px, 3.4vw, 46px); /* container 단위를 모르는 옛 브라우저용 */
+  line-height: 1;
+  container-type: inline-size;
   box-shadow: 0 4px 0 #64748b, 0 8px 18px rgba(0, 0, 0, 0.45);
   border: none;
   font-family: inherit;
   padding: 0;
 }
+.자리 > span { font-size: 46cqi; } /* 세 자리 수(예: 144)도 카드 안에 들어간다 */
 .자리.빈칸 {
   background: repeating-linear-gradient(45deg, #1a2334, #1a2334 8px, #141b2b 8px, #141b2b 16px);
   color: #475569;
   box-shadow: none;
-  font-size: 20px;
+  font-size: clamp(18px, 2.6vw, 34px);
 }
+.자리.빈칸 > span { font-size: 34cqi; }
 .자리.고를수있음 { cursor: pointer; outline: 2px dashed var(--노랑); outline-offset: -5px; }
 .자리.고를수있음:hover { filter: brightness(1.1); }
 .자리.겹침 { outline: 3px solid var(--빨강); outline-offset: -3px; }
@@ -311,6 +326,7 @@ input:disabled { opacity: 0.45; }
   margin-top: 16px;
   font-size: 14px;
   color: var(--흐림);
+  flex-wrap: wrap;
 }
 
 /* ── 통계·표 ────────────────────────────────────────────────── */
@@ -347,8 +363,17 @@ table.표 th { color: var(--흐림); font-weight: 600; font-size: 14px; }
 .안내.빨강 { border-color: var(--빨강); background: rgba(248, 113, 113, 0.09); }
 .안내 b { color: #fff; }
 
-/* 히트맵 */
-.히트맵 { display: grid; gap: 5px; justify-content: center; margin: 10px 0; }
+/* 히트맵 — 무대와 같은 까닭으로 가운데 맞춤을 margin:auto 로 한다.
+   폭이 모자라면 max-width 에 걸려 히트맵 상자 안에서 옆으로 밀어 본다. */
+.히트맵 {
+  display: grid;
+  gap: 5px;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 10px auto;
+  scrollbar-color: #475569 transparent;
+}
 .히트칸 {
   aspect-ratio: 4 / 3;
   min-width: 44px;
@@ -428,10 +453,13 @@ details.더 > div { padding: 6px 0 6px 14px; border-left: 2px solid var(--테두
     padding: 10px;
     border-right: none;
     border-bottom: 1px solid var(--테두리);
+    scrollbar-color: #475569 transparent;
   }
-  .brand { padding: 0 12px 0 6px; font-size: 17px; }
+  /* ⚠ flex:none 을 빼면 제목이 줄어들며 한 글자씩 꺾여 세로로 길게 늘어난다.
+     넘치는 단추는 사이드바를 옆으로 밀어서 본다. */
+  .brand { flex: none; white-space: nowrap; padding: 0 12px 0 6px; font-size: 17px; }
   .brand small { display: none; }
-  .nav-btn { width: auto; white-space: nowrap; padding: 10px 14px; font-size: 15px; }
+  .nav-btn { flex: none; width: auto; white-space: nowrap; padding: 10px 14px; font-size: 15px; }
   .side-foot { display: none; }
   #본문 { padding: 18px 14px 50px; }
   input[type="range"] { width: 150px; }

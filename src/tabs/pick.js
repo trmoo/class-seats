@@ -160,7 +160,7 @@ function 번호칸() {
         id: '번호입력',
         value: 상태.번호글,
         placeholder: '비워 두면 1번부터 차례로',
-        style: { minWidth: '340px' },
+        style: { width: '340px' },
         onInput: (e) => { 상태.번호글 = e.target.value; 번호안내갱신(); },
       }),
     ),
@@ -290,16 +290,20 @@ function 무대() {
     }
   }
 
+  // .무대 는 가로 스크롤 상자, .교실 은 그 안에서 교탁·격자·범례를 한 덩이로 묶는다.
+  // 열이 많아 넘치면 셋이 함께 옆으로 밀리므로 교탁이 늘 자리 위 가운데에 남는다.
   return h(
     'section',
     { class: '무대' },
-    h('div', { class: '교탁' }, '칠 판 · 교 탁'),
-    격자,
-    h('div', { class: '구역범례' },
-      h('span', { style: { color: 'var(--앞구역)' } }, '■ 앞'),
-      h('span', { style: { color: 'var(--중구역)' } }, '■ 중'),
-      h('span', { style: { color: 'var(--뒤구역)' } }, '■ 뒤'),
-      h('span', {}, '— 왼쪽 행 번호의 색이 구역입니다'),
+    h('div', { class: '교실' },
+      h('div', { class: '교탁' }, '칠 판 · 교 탁'),
+      격자,
+      h('div', { class: '구역범례' },
+        h('span', { style: { color: 'var(--앞구역)' } }, '■ 앞'),
+        h('span', { style: { color: 'var(--중구역)' } }, '■ 중'),
+        h('span', { style: { color: 'var(--뒤구역)' } }, '■ 뒤'),
+        h('span', {}, '— 왼쪽 행 번호의 색이 구역입니다'),
+      ),
     ),
   );
 }
@@ -309,15 +313,16 @@ function 자리칸(인덱스, 순번) {
   const 번호 = 상태.배치 ? 상태.배치[인덱스] : null;
 
   // 없는 자리는 설정 중이든 아니든 ❌ 로 보인다. 쓰는 자리에 ❌ 를 붙이면 뜻이 거꾸로 읽힌다.
+  // 글자는 <span> 에 넣는다 — 글자 크기를 카드 폭에 맞추는 CSS(.자리 > span)가 여기에 걸린다.
   if (없앤자리) {
     const 속성 = { class: '자리 빈칸', title: 자리이름(인덱스, 상태.열) + ' — 쓰지 않는 자리', 'aria-label': '쓰지 않는 자리' };
     if (상태.없는자리설정중) {
-      return h('button', { ...속성, class: '자리 빈칸 고를수있음', onClick: () => 자리토글(인덱스) }, '❌');
+      return h('button', { ...속성, class: '자리 빈칸 고를수있음', onClick: () => 자리토글(인덱스) }, h('span', {}, '❌'));
     }
-    return h('div', 속성, '❌');
+    return h('div', 속성, h('span', {}, '❌'));
   }
 
-  const 글 = 번호 != null ? String(번호) : '';
+  const 글 = h('span', {}, 번호 != null ? String(번호) : '');
   const 속성 = {
     class: '자리' + (상태.방금뽑음 && 번호 != null ? ' 등장' : ''),
     style: 상태.방금뽑음 && 번호 != null ? { animationDelay: `${순번 * 22}ms` } : {},
