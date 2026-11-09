@@ -105,7 +105,7 @@ function 조작판(이력) {
 
     상태.번호설정중 ? 번호칸() : null,
     상태.없는자리설정중
-      ? h('div', { class: '안내' }, '아래 교실에서 쓰지 않는 자리를 눌러 주세요. 다시 누르면 되돌아옵니다.')
+      ? h('div', { class: '안내' }, '아래 교실에서 쓰지 않는 자리를 눌러 주세요. ❌ 로 바뀝니다. 다시 누르면 되돌아옵니다.')
       : null,
 
     h('div', { class: '줄', style: { marginTop: '18px' } },
@@ -308,12 +308,13 @@ function 자리칸(인덱스, 순번) {
   const 없앤자리 = 상태.없는자리.includes(인덱스);
   const 번호 = 상태.배치 ? 상태.배치[인덱스] : null;
 
+  // 없는 자리는 설정 중이든 아니든 ❌ 로 보인다. 쓰는 자리에 ❌ 를 붙이면 뜻이 거꾸로 읽힌다.
   if (없앤자리) {
-    const 속성 = { class: '자리 빈칸', title: 자리이름(인덱스, 상태.열) + ' — 쓰지 않는 자리' };
+    const 속성 = { class: '자리 빈칸', title: 자리이름(인덱스, 상태.열) + ' — 쓰지 않는 자리', 'aria-label': '쓰지 않는 자리' };
     if (상태.없는자리설정중) {
-      return h('button', { ...속성, class: '자리 빈칸 고를수있음', onClick: () => 자리토글(인덱스) }, '없음');
+      return h('button', { ...속성, class: '자리 빈칸 고를수있음', onClick: () => 자리토글(인덱스) }, '❌');
     }
-    return h('div', 속성, '없음');
+    return h('div', 속성, '❌');
   }
 
   const 글 = 번호 != null ? String(번호) : '';
@@ -323,7 +324,7 @@ function 자리칸(인덱스, 순번) {
     title: 자리이름(인덱스, 상태.열),
   };
   if (상태.없는자리설정중) {
-    return h('button', { ...속성, class: 속성.class + ' 고를수있음', onClick: () => 자리토글(인덱스) }, 글 || '❌');
+    return h('button', { ...속성, class: 속성.class + ' 고를수있음', onClick: () => 자리토글(인덱스) }, 글);
   }
   return h('div', 속성, 글);
 }
