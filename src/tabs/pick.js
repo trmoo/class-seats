@@ -8,6 +8,7 @@ import { 쓰는자리, 앉히기, 구역, 자리이름 } from '../core/seats.js'
 import { 회피배치, 겹침요약 } from '../core/avoid.js';
 import * as 이력창고 from '../core/history.js';
 import { 푸터 } from './help.js';
+import { 자리표판 } from './chart-panel.js';
 
 // 화면 상태. 탭을 벗어나면 사라진다(서버도 계정도 없다).
 const 상태 = {
@@ -63,6 +64,7 @@ function 칠하기() {
     조작판(이력),
     무대(),
     ...(상태.배치 ? [결과요약(이력)] : []),
+    자리표판({ 상태, 다시 }),
     푸터(),
   );
 }

@@ -72,8 +72,9 @@ jobs:
           grep -q '원작자의 허락을 받아' "$FILE" || { echo "::error::화면 푸터가 없습니다"; exit 1; }
 
           # 바깥 자원을 부르면 인터넷 없는 교실에서 깨진다
-          # (w3.org 는 SVG 이름공간이라 자원을 내려받지 않는다)
-          OUTSIDE=$(grep -Eo 'https?://[^ "<>)]+' "$FILE" | grep -v 'www.w3.org' | sort -u || true)
+          # (w3.org 는 SVG 이름공간, schemas.openxmlformats.org 는 워드 파일(.docx) 속 XML 이름공간이라
+          #  둘 다 자원을 내려받지 않는다)
+          OUTSIDE=$(grep -Eo 'https?://[^ "<>)]+' "$FILE" | grep -v 'www.w3.org' | grep -v 'schemas.openxmlformats.org' | sort -u || true)
           if [ -n "$OUTSIDE" ]; then
             echo "::error::바깥 자원을 참조합니다. 오프라인에서 열리지 않습니다."
             echo "$OUTSIDE"

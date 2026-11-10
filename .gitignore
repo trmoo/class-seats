@@ -7,3 +7,14 @@ tmp/
 
 # 개발 기록은 로컬에만 둔다 — 깃허브에 올리지 않는다
 CLAUDE.md
+
+# 실제 학생 명렬표와 내려받은 자리배치표는 저장소에 넣지 않는다 (이름이 들어 있다)
+*.xlsx
+*.xls
+*.csv
+*.docx
+*.hwp
+*.hwpx
+!test/fixtures/*.xlsx
+!test/fixtures/*.csv
+tools/__pycache__/

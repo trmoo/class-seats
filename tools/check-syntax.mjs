@@ -80,6 +80,18 @@ for (const 길 of 소스들) {
       }
     }
   }
+
+  // ⑧ 명렬표(학생 이름)를 다루는 파일은 브라우저 저장소를 쓰지 않는다.
+  //   이름은 화면 변수에만 두고, 새로 고치면 사라지게 한다(개인정보를 남기지 않는 원칙).
+  //   주석에 「localStorage 에 넣지 않는다」 라고 적은 것은 걸리지 않게 주석을 걷어 내고 본다.
+  const 코드만 = 글.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`\\])\/\/.*$/gm, '$1');
+  if (이름.startsWith('src/') && /명렬/.test(코드만) && /localStorage|sessionStorage|indexedDB|document\.cookie/.test(코드만)) {
+    잘못.push(`${이름} — 명렬표(학생 이름)를 다루는 파일에서 브라우저 저장소를 썼다. 이름을 남기면 안 된다`);
+  }
+  // 지난 배치 기억(history.js)에는 이름이 들어갈 길이 없어야 한다
+  if (이름 === 'src/core/history.js' && /명렬|이름표|roster|chart-panel/.test(코드만)) {
+    잘못.push(`${이름} — 지난 배치 기억이 명렬표를 건드린다. 이력에는 번호만 남긴다`);
+  }
 }
 
 // .replaceChildren( … ) 같은 부름을 찾아, 괄호 맨 바깥 단계의 글자만 모은다.
@@ -124,4 +136,4 @@ if (잘못.length) {
   console.log('');
   process.exit(1);
 }
-console.log(`  ✅ 소스 ${소스들.length}개 모두 통과 (문법 · 저작권 · 화면 수명 · 기본 대화상자 · DOM null)\n`);
+console.log(`  ✅ 소스 ${소스들.length}개 모두 통과 (문법 · 저작권 · 화면 수명 · 기본 대화상자 · DOM null · 명렬 저장 금지)\n`);

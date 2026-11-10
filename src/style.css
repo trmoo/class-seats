@@ -186,6 +186,19 @@ input[type="text"] {
   max-width: 100%; /* 좁은 화면에서 패널 밖으로 삐져나가지 않게 */
 }
 input[type="text"]:focus { outline: 2px solid var(--강조); border-color: transparent; }
+
+/* 자리배치표 인사말 칸 — 글상자와 같은 모양으로 */
+textarea {
+  background: var(--패널밝);
+  border: 1px solid var(--테두리);
+  border-radius: 10px;
+  color: var(--글);
+  font: inherit;
+  padding: 11px 14px;
+  width: 100%;
+  resize: vertical;
+}
+textarea:focus { outline: 2px solid var(--강조); border-color: transparent; }
 input:disabled { opacity: 0.45; }
 
 .btn {
@@ -471,6 +484,7 @@ details.더 > div { padding: 6px 0 6px 14px; border-left: 2px solid var(--테두
   body::before,
   #사이드바,
   .조작판,
+  .자리표판,
   .btn,
   .안내,
   .인쇄숨김 { display: none !important; }
