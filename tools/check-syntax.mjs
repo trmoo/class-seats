@@ -68,6 +68,46 @@ for (const 길 of 소스들) {
   if (기본창 && !이름.startsWith('tools/')) {
     잘못.push(`${이름} — ${기본창[1]}() 을 썼다. ui.js 의 알림() 을 쓸 것`);
   }
+
+  // ⑦ DOM 의 replaceChildren·append 등에 null·false 가 될 수 있는 값을 바로 넘기지 않았는가.
+  //   h() 는 null·false 자식을 건너뛰지만, 브라우저의 이 함수들은 그 값을 「null」「false」 글자로 넣는다.
+  //   자리 뽑기 화면 아래에 「null」 이 떠 있었다(2026-11-10 사용자가 발견). 시험은 DOM 을 안 부르므로 못 잡았다.
+  //   없을 수도 있는 조각은 ...(조건 ? [조각] : []) 처럼 배열로 펼쳐 넘긴다.
+  if (이름.startsWith('src/')) {
+    for (const 부름 of DOM넣기부름(글)) {
+      if (/:\s*(null|undefined|false)\b|\?\s*(null|undefined|false)\s*:|&&/.test(부름.겉글)) {
+        잘못.push(`${이름}:${부름.줄} — ${부름.함수}() 에 null·false 가 될 수 있는 값을 넘겼다. ...(조건 ? [조각] : []) 로 펼칠 것`);
+      }
+    }
+  }
+}
+
+// .replaceChildren( … ) 같은 부름을 찾아, 괄호 맨 바깥 단계의 글자만 모은다.
+// 안쪽 괄호(h(…) 의 자식 등)는 h() 가 null 을 걸러 주므로 보지 않는다. 글자열 속 괄호는 건너뛴다.
+function DOM넣기부름(글) {
+  const 결과 = [];
+  const 찾기 = /\.(replaceChildren|append|prepend|before|after|replaceWith)\(/g;
+  let 맞음;
+  while ((맞음 = 찾기.exec(글))) {
+    let 깊이 = 1;
+    let 겉글 = '';
+    let 따옴표 = null;
+    for (let i = 맞음.index + 맞음[0].length; i < 글.length && 깊이 > 0; i++) {
+      const 글자 = 글[i];
+      if (따옴표) {
+        if (글자 === '\\') i++;
+        else if (글자 === 따옴표) 따옴표 = null;
+        continue;
+      }
+      if (글자 === "'" || 글자 === '"' || 글자 === '`') { 따옴표 = 글자; continue; }
+      if ('([{'.includes(글자)) { 깊이++; continue; }
+      if (')]}'.includes(글자)) { 깊이--; continue; }
+      if (깊이 === 1) 겉글 += 글자;
+    }
+    const 줄 = 글.slice(0, 맞음.index).split('\n').length;
+    결과.push({ 함수: 맞음[1], 줄, 겉글 });
+  }
+  return 결과;
 }
 
 // ⑥ 화면 아래 푸터가 살아 있는가 (학생·교사가 실제로 보는 저작권 표시)
@@ -84,4 +124,4 @@ if (잘못.length) {
   console.log('');
   process.exit(1);
 }
-console.log(`  ✅ 소스 ${소스들.length}개 모두 통과 (문법 · 저작권 · 화면 수명 · 기본 대화상자)\n`);
+console.log(`  ✅ 소스 ${소스들.length}개 모두 통과 (문법 · 저작권 · 화면 수명 · 기본 대화상자 · DOM null)\n`);
