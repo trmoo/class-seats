@@ -6,12 +6,17 @@
  *    localStorage·sessionStorage·이력·내보내기 파일 어디에도 넣지 않는다 — 새로 고치면 사라진다.
  *    tools/check-syntax.mjs ⑧ 이 이 파일에서 저장소를 쓰지 못하게 막는다.
  *
- *  ⚠ 글상자에 칠 때마다 화면 전체를 다시 그리지 않는다(초점이 날아간다). 값만 판에 담는다.
+ *  ⚠ 글상자에 칠 때마다 화면 전체를 다시 그리지 않는다(초점이 날아간다).
+ *    값만 판에 담고, 미리보기 칸 하나만 갈아 끼운다(미리보기갱신).
  */
 import { h, 알림 } from '../lib/ui.js';
 import { 표읽기 } from '../lib/sheet.js';
 import { 명렬표찾기, 번호범위글, 맞대기 } from '../core/roster.js';
 import { 자리표문서, 오늘글, 자리표파일이름 } from '../core/chartdoc.js';
+import { 미리보기 } from './chart-preview.js';
+
+// 지금 그려진 자리 뽑기 화면의 상태. 미리보기를 갈아 끼울 때 쓴다.
+let 지금상태 = null;
 
 const 판 = {
   명렬: null, // { 학생, 경고, 시트, 파일 }
@@ -45,7 +50,42 @@ function 인사말따라가기() {
   if (칸) 칸.value = 판.인사말;
 }
 
+// 워드 파일과 미리보기가 똑같은 설정을 쓰도록 한 곳에서 만든다.
+// 아직 뽑기 전이면 자리마다 0(빈 자리 칸)을 넣어 교실 모양만 보여 준다.
+function 문서설정(상태) {
+  const 배치 = 상태.배치 ||
+    Array.from({ length: 상태.열 * 상태.행 }, (_, i) => (상태.없는자리.includes(i) ? null : 0));
+  return {
+    열: 상태.열,
+    행: 상태.행,
+    배치,
+    학생: 판.명렬?.학생 || null,
+    인사말: 판.인사말,
+    반: 판.반,
+    담임: 판.담임,
+    회장: 판.회장,
+    부회장: 판.부회장,
+    날짜: 판.날짜,
+    빈책상: 판.빈책상,
+    빈책상글: 판.빈책상글,
+    명렬칸: 판.명렬칸,
+    번호붙이기: 판.번호붙이기,
+    각주: 판.각주,
+  };
+}
+
+function 미리보기칸(상태) {
+  return h('div', { id: '자리표미리' }, 미리보기(문서설정(상태)));
+}
+
+// 글자를 칠 때마다 부른다 — 판 전체가 아니라 미리보기 한 칸만 새로 그린다.
+function 미리보기갱신() {
+  const 칸 = document.getElementById('자리표미리');
+  if (칸 && 지금상태) 칸.replaceChildren(미리보기(문서설정(지금상태)));
+}
+
 export function 자리표판({ 상태, 다시 }) {
+  지금상태 = 상태;
   if (!판.인사말손댐) 판.인사말 = 기본인사말();
   const 명렬 = 판.명렬;
 
@@ -84,7 +124,7 @@ export function 자리표판({ 상태, 다시 }) {
       '비고 칸이나 이름 옆에 (전출)·(자퇴)가 있으면 재적에서 뺍니다.'),
     명렬 && 상태.배치 ? 맞대기안내(상태, 명렬) : null,
 
-    h('details', { class: '더' },
+    h('details', { class: '더', open: true },
       h('summary', {}, '✏️ 자리표에 들어갈 글 고치기 — 반 · 담임 · 회장 · 날짜 · 인사말'),
       h('div', {},
         h('div', { class: '줄' },
@@ -99,7 +139,7 @@ export function 자리표판({ 상태, 다시 }) {
           h('textarea', {
             id: '자리표인사말',
             rows: 3,
-            onInput: (e) => { 판.인사말 = e.target.value; 판.인사말손댐 = true; },
+            onInput: (e) => { 판.인사말 = e.target.value; 판.인사말손댐 = true; 미리보기갱신(); },
           }, 판.인사말),
         ),
         h('div', { class: '줄', style: { marginTop: '12px' } },
@@ -115,6 +155,17 @@ export function 자리표판({ 상태, 다시 }) {
           '모든 행이 비어 있는 열은 통로로 보고 좁은 틈으로 그립니다. 화면의 1열이 종이의 맨 왼쪽, 1행이 교탁 바로 앞(맨 아래)입니다.'),
       ),
     ),
+
+    h('div', { class: '미리안내' },
+      h('b', {}, '👀 미리보기'),
+      h('span', { class: '라벨' },
+        상태.배치
+          ? '내려받을 워드 파일과 같은 모양입니다. 위 칸을 고치거나 고르면 바로 바뀝니다.'
+          : '아직 뽑기 전이라 자리 칸이 비어 있습니다. 위 칸을 고치거나 고르면 바로 바뀝니다.'),
+    ),
+    미리보기칸(상태),
+    h('p', { class: '라벨', style: { margin: '8px 0 0' } },
+      '글꼴은 컴퓨터와 프로그램(워드·한글)에 따라 조금 다르게 보일 수 있습니다.'),
 
     h('div', { class: '줄', style: { marginTop: '16px' } },
       h('button', {
@@ -137,7 +188,7 @@ function 글칸(이름, 열쇠, 보기, 바뀔때) {
       id,
       value: 판[열쇠],
       placeholder: 보기,
-      onInput: (e) => { 판[열쇠] = e.target.value; 바뀔때?.(); },
+      onInput: (e) => { 판[열쇠] = e.target.value; 바뀔때?.(); 미리보기갱신(); },
     }));
 }
 
@@ -149,6 +200,7 @@ function 고르기(열쇠, 이름) {
       onChange: (e) => {
         판[열쇠] = e.target.checked;
         e.target.parentElement.classList.toggle('켜짐', 판[열쇠]);
+        미리보기갱신();
       },
     }),
     이름);
@@ -212,23 +264,8 @@ async function 번호맞추기(상태, 다시) {
 }
 
 function 내려받기(상태) {
-  const 바이트 = 자리표문서({
-    열: 상태.열,
-    행: 상태.행,
-    배치: 상태.배치,
-    학생: 판.명렬?.학생 || null,
-    인사말: 판.인사말,
-    반: 판.반,
-    담임: 판.담임,
-    회장: 판.회장,
-    부회장: 판.부회장,
-    날짜: 판.날짜,
-    빈책상: 판.빈책상,
-    빈책상글: 판.빈책상글,
-    명렬칸: 판.명렬칸,
-    번호붙이기: 판.번호붙이기,
-    각주: 판.각주,
-  });
+  if (!상태.배치) return;
+  const 바이트 = 자리표문서(문서설정(상태)); // 미리보기와 같은 설정
   const 덩이 = new Blob([바이트], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
   const 주소 = URL.createObjectURL(덩이);
   const a = h('a', { href: 주소, download: 자리표파일이름(판.반) });

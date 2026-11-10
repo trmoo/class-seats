@@ -199,6 +199,52 @@ textarea {
   resize: vertical;
 }
 textarea:focus { outline: 2px solid var(--강조); border-color: transparent; }
+
+/* ── 자리배치표 미리보기 — 흰 종이 한 장 ────────────────────────
+   종이(A4 가로)를 실제 크기로 그린 뒤 chart-preview.js 가 판 너비에 맞게 scale 로 줄인다.
+   선 굵기·글자 크기는 워드 파일과 같은 pt 로 적는다. */
+.미리틀 {
+  position: relative;
+  width: 100%;
+  max-width: 1123px; /* 종이 실제 너비보다 넓히지 않는다 — 넓히면 오른쪽에 흰 여백이 붙어 종이가 길어 보인다 */
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
+}
+.미리종이 {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  box-sizing: border-box;
+  background: #fff;
+  color: #000;
+  font-family: '맑은 고딕', 'Malgun Gothic', sans-serif;
+}
+.미리본문 { display: flex; align-items: flex-start; }
+.미리본문.명렬있음 { align-items: center; } /* 워드에서 왼쪽 칸이 명렬 높이의 가운데에 서는 것과 같게 */
+.미리왼쪽 { flex: none; display: flex; flex-direction: column; align-items: center; }
+.미리줄 { text-align: center; white-space: nowrap; }
+.미리자리표,
+.미리명렬 { border-collapse: collapse; table-layout: fixed; flex: none; }
+.미리자리표 td,
+.미리명렬 td { padding: 0 4px; text-align: center; vertical-align: middle; overflow: hidden; }
+.미리자리표 td.선 { border: 1pt solid #000; }
+.미리교탁 {
+  box-sizing: border-box;
+  border: 0.75pt dashed #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.미리명렬 { border: 1.5pt solid #000; }
+.미리명렬 td { border-top: 0.5pt dotted #777; border-left: 0.5pt solid #000; }
+.미리명렬 tr.위선 td { border-top: 1pt solid #000; }
+.미리명렬 tr.아래선 td { border-bottom: 1pt solid #000; }
+.미리안내 { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin: 18px 0 10px; }
+.미리안내 b { font-size: 17px; }
 input:disabled { opacity: 0.45; }
 
 .btn {
